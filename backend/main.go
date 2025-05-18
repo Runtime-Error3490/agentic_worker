@@ -16,6 +16,20 @@ type LoginPayload struct {
 	Identifier string `json:"identifier,omitempty"`
 }
 
+// Middleware to handle CORS
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
@@ -39,12 +53,14 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			"username": payload.Username,
 			"password": payload.Password,
 		})
+		fmt.Print("LinkedIn login payload: ", string(forwardBody))
 	} else if payload.Platform == "twitter" {
 		pythonURL = "http://localhost:8000/login-twitter"
 		forwardBody, _ = json.Marshal(map[string]string{
 			"identifier": payload.Identifier,
 			"password":   payload.Password,
 		})
+		fmt.Print("Twitter login payload: ", string(forwardBody))
 	} else {
 		http.Error(w, "Unsupported platform", http.StatusBadRequest)
 		return
@@ -68,7 +84,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/api/login", loginHandler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/login", loginHandler)
+	handler := corsMiddleware(mux)
 	fmt.Println("Go API listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }

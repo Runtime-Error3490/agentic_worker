@@ -24,13 +24,13 @@ function LoginForm() {
     } else {
       payload = {
         platform,
-        identifier: twitterIdentifier,
+        identifier: twitterIdentifier, 
         password: twitterPassword,
       };
     }
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
