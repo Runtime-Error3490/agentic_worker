@@ -1,4 +1,4 @@
-# Multi-Component App
+# Agentic_Worker
 
 A full-stack application consisting of three services:
 
