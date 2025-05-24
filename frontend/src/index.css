@@ -1,1 +1,9 @@
 @import "tailwindcss";
+@font-face {
+    font-family: body-font;
+    src: url(../src/assets/alkia/Alkia.ttf);
+}
+
+body {
+  font-family: 'body-font', sans-serif;
+}

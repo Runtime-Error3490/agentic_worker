@@ -72,10 +72,7 @@ go run main.go
 
 3. **Run with Uvicorn**:
    ```bash
-   uvicorn python_service:app \
-     --host 0.0.0.0 \
-     --port 8000 \
-     --reload
+   uvicorn python_service:app --host 0.0.0.0 --port 8000 --reload
    ```
 
 - Serves on: `http://localhost:8000`

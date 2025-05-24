@@ -30,7 +30,7 @@ async def login_linkedin(req: LoginRequest):
         driver.find_element("id", "password").send_keys(req.password)
         driver.find_element("css selector", "button[type=submit]").click()
         current = driver.current_url
-        return {"status": "ok", "url": current}
+        return {"status": "200", "url": current}
     except Exception as e:
         raise HTTPException(500, str(e))
     # finally:

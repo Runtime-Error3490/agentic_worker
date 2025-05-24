@@ -53,14 +53,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			"username": payload.Username,
 			"password": payload.Password,
 		})
-		fmt.Print("LinkedIn login payload: ", string(forwardBody))
 	} else if payload.Platform == "twitter" {
 		pythonURL = "http://localhost:8000/login-twitter"
 		forwardBody, _ = json.Marshal(map[string]string{
 			"identifier": payload.Identifier,
 			"password":   payload.Password,
 		})
-		fmt.Print("Twitter login payload: ", string(forwardBody))
 	} else {
 		http.Error(w, "Unsupported platform", http.StatusBadRequest)
 		return
