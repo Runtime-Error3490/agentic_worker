@@ -3,7 +3,23 @@
     font-family: body-font;
     src: url(../src/assets/alkia/Alkia.ttf);
 }
-
+@font-face {
+  font-family: extract-text;
+  src: url(../src//assets//unispace/unispace.ttf);
+}
 body {
   font-family: 'body-font', sans-serif;
+}
+
+.extract-text{
+  font-family: 'extract-text', sans-serif;
+}
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE/Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
 }

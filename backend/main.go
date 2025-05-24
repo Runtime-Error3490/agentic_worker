@@ -7,6 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 type LoginPayload struct {
@@ -14,6 +16,31 @@ type LoginPayload struct {
 	Username   string `json:"username,omitempty"`
 	Password   string `json:"password"`
 	Identifier string `json:"identifier,omitempty"`
+}
+type TextAIRequest struct {
+	Text string `json:"text"`
+}
+
+type TextAIResponse struct {
+	Text string `json:"text"`
+}
+
+type geminiRequest struct {
+	Contents []struct {
+		Parts []struct {
+			Text string `json:"text"`
+		} `json:"parts"`
+	} `json:"contents"`
+}
+
+type geminiResponse struct {
+	Candidates []struct {
+		Content struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		} `json:"content"`
+	} `json:"candidates"`
 }
 
 // Middleware to handle CORS
@@ -80,10 +107,93 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	w.Write(body)
 }
+func textAIHandler(w http.ResponseWriter, r *http.Request) {
+	log.Print("Received text AI request")
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	if apiKey == "" {
+		log.Fatal("GEMINI_API_KEY environment variable not set.")
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	var req TextAIRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"invalid payload"}`, http.StatusBadRequest)
+		return
+	}
+	log.Print("Calling Gemini AI with prompt: ", req.Text)
+	generated, err := callGemini(apiKey, req.Text)
+	if err != nil {
+		log.Printf("AI call failed: %v", err)
+		http.Error(w, `{"error":"AI service error"}`, http.StatusInternalServerError)
+		return
+	}
+	log.Print("AI response: ", generated)
+	json.NewEncoder(w).Encode(TextAIResponse{Text: generated})
+}
+func callGemini(apiKey, prompt string) (string, error) {
+
+	reqBody := geminiRequest{
+		Contents: []struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		}{
+			{
+				Parts: []struct {
+					Text string `json:"text"`
+				}{
+					{Text: prompt},
+				},
+			},
+		},
+	}
+
+	buf, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", fmt.Errorf("marshal request: %w", err)
+	}
+
+	endpoint := fmt.Sprintf(
+		"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=%s",
+		apiKey,
+	)
+	httpReq, err := http.NewRequest("POST", endpoint, bytes.NewReader(buf))
+	if err != nil {
+		return "", fmt.Errorf("new request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 15 * time.Second}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return "", fmt.Errorf("do request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	log.Printf("Raw Gemini JSON: %s\n", bodyBytes)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bad status: %s -- %s", resp.Status, bodyBytes)
+	}
+
+	var apiResp geminiResponse
+	if err := json.Unmarshal(bodyBytes, &apiResp); err != nil {
+		return "", fmt.Errorf("unmarshal response: %w", err)
+	}
+
+	if len(apiResp.Candidates) == 0 || len(apiResp.Candidates[0].Content.Parts) == 0 {
+		return "", fmt.Errorf("no generated text in response")
+	}
+	return apiResp.Candidates[0].Content.Parts[0].Text, nil
+}
 
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/login", loginHandler)
+	mux.HandleFunc("/api/textai", textAIHandler)
 	handler := corsMiddleware(mux)
 	fmt.Println("Go API listening on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))

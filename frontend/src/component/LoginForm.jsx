@@ -5,7 +5,7 @@ import logo from "../../public/agentic_worker_logo.png";
 import linkedinIcon from "../assets/linkedin.svg";
 import twitterIcon from "../assets/twitter.svg";
 
-function LoginForm() {
+function LoginForm({onLogin}) {
   const navigate = useNavigate();
   const [platform, setPlatform] = useState("linkedin");
   const [linkedinUsername, setLinkedinUsername] = useState("");
@@ -44,7 +44,7 @@ function LoginForm() {
 
       const data = await res.json();
       if (data.status === "200") {
-        console.log("Login successful:", data);
+       onLogin()   
         navigate("/FileUploader");
       }
     } catch (error) {
