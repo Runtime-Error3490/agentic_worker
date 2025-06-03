@@ -49,7 +49,7 @@ function FileUploader() {
     if (!data) return;
     const text = "Please read this CV and create a message for my connection in linkedin so that they can give me a referral for the job I am applying for." + data;
     try {
-      const response = await fetch("http://localhost:8080/api/textai", {
+      const response = await fetch("https://agentic-worker.onrender.com/api/textai", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
