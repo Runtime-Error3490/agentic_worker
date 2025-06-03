@@ -75,13 +75,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	var forwardBody []byte
 
 	if payload.Platform == "linkedin" {
-		pythonURL = "http://localhost:8000/login-linkedin"
+		pythonURL = "https://agentic-worker-1.onrender.com/login-linkedin"
 		forwardBody, _ = json.Marshal(map[string]string{
 			"username": payload.Username,
 			"password": payload.Password,
 		})
 	} else if payload.Platform == "twitter" {
-		pythonURL = "http://localhost:8000/login-twitter"
+		pythonURL = "https://agentic-worker-1.onrender.com/login-twitter"
 		forwardBody, _ = json.Marshal(map[string]string{
 			"identifier": payload.Identifier,
 			"password":   payload.Password,
