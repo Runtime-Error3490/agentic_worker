@@ -73,7 +73,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Decide which Python endpoint to hit
 	var pythonURL string
 	var forwardBody []byte
-
+	//path changed
 	if payload.Platform == "linkedin" {
 		pythonURL = "https://agentic-worker-1.onrender.com/login-linkedin"
 		forwardBody, _ = json.Marshal(map[string]string{
