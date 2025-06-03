@@ -1,0 +1,5 @@
+fastapi==0.100.0
+uvicorn[standard]==0.23.1
+selenium==4.10.0
+webdriver-manager==3.8.5
+pydantic==1.10.12
