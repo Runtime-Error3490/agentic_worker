@@ -195,6 +195,10 @@ func main() {
 	mux.HandleFunc("/api/login", loginHandler)
 	mux.HandleFunc("/api/textai", textAIHandler)
 	handler := corsMiddleware(mux)
-	fmt.Println("Go API listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // only for local dev; Render will always set PORT
+	}
+	fmt.Println("Go API listening on http://localhost:" + port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
